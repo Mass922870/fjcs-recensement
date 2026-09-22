@@ -7,12 +7,14 @@ Plateforme numérique de recensement, de connaissance et d'analyse de la jeuness
 ## Fonctionnalités
 
 **Site public**
+
 - Landing page (pourquoi ce recensement, données au service de l'action, FAQ)
 - Formulaire de recensement en 7 étapes, mobile-first, brouillon local, validation en temps réel, champs conditionnels
 - Page de confirmation avec identifiant de participation non sensible (`FJCS-XXXXXX`)
 - Politique de confidentialité et page contact (contenu piloté depuis les Paramètres)
 
 **Espace administration** (`/admin`)
+
 - Dashboard : 7 KPI + 8 graphiques, filtres globaux dans l'URL
 - Jeunes recensés : recherche, filtres, tri, pagination, fiche détaillée, édition, archivage, anonymisation, suppression (selon rôle)
 - Statistiques avancées : croisements de 2 dimensions (heatmap + barres empilées), 8 analyses prédéfinies
@@ -42,15 +44,16 @@ npm run dev                 # http://localhost:3000
 
 ## Variables d'environnement
 
-| Variable | Rôle |
-|---|---|
-| `DATABASE_URL` | Connexion PostgreSQL |
-| `AUTH_SECRET` | Secret de signature des sessions (obligatoire) |
-| `AUTH_TRUST_HOST` | `true` derrière un proxy / hébergeur |
-| `NEXT_PUBLIC_APP_URL` | URL publique du site |
-| `IP_HASH_SALT` | Sel de hachage des IP dans les journaux |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | CAPTCHA Cloudflare Turnstile (optionnel, activé si les deux sont définis) |
-| `SHOW_DEMO_DATA` | `true` en développement uniquement pour afficher les profils de démonstration |
+| Variable                                                 | Rôle                                                                          |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `DATABASE_URL`                                           | Connexion PostgreSQL                                                          |
+| `AUTH_SECRET`                                            | Secret de signature des sessions (obligatoire)                                |
+| `AUTH_TRUST_HOST`                                        | `true` derrière un proxy / hébergeur                                          |
+| `NEXT_PUBLIC_APP_URL`                                    | URL publique du site                                                          |
+| `IP_HASH_SALT`                                           | Sel de hachage des IP dans les journaux                                       |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | CAPTCHA Cloudflare Turnstile (optionnel, activé si les deux sont définis)     |
+| `SHOW_DEMO_DATA`                                         | `true` en développement uniquement pour afficher les profils de démonstration |
+| `DIRECT_URL`                                             | Connexion directe PostgreSQL, pour les migrations et le seed                  |
 
 Ne jamais committer `.env` (déjà ignoré par git).
 
@@ -65,11 +68,55 @@ npm run db:migrate            # développement : crée/applique une migration
 npm run db:deploy             # production : applique les migrations existantes
 npm run db:studio             # explorateur Prisma
 npm run db:seed               # référentiels (idempotent)
-npm run db:seed-demo          # 100 profils fictifs (isDemo=true) - développement uniquement
+npm run db:seed-demo          # 100 profils fictifs (isDemo=true) - développementuniquement
+
+npm run db:studio             #Prisma Studio s'ouvrira sur http://localhost:5555.
 npm run db:seed-demo -- --purge
 ```
 
+#--Un client SQL (DBeaver, TablePlus, pgAdmin, extension VS Code « PostgreSQL »)
+Champ Valeur
+Hôte localhost
+Port 5433
+Base fjcs_recensement
+Utilisateur fjcs
+Mot de passe fjcs_dev_password
+URL complète postgresql://fjcs:fjcs_dev_password@localhost:5433/fjcs_recensement
+
+E-mail : admin@fjcs.sn
+Mot de passe : Admin2026!fjcs
+
 Les profils de démonstration sont marqués `isDemo = true`, exclus de toutes les statistiques sauf si `SHOW_DEMO_DATA=true` hors production, et le seed refuse de s'exécuter en production.
+
+Dans VS Code, trois étapes :
+
+1. Ouvrir le fichier `.env` à la racine du projet (Ctrl+P puis taper `.env`).
+
+2. Remplacer la ligne :
+
+```bash
+SHOW_DEMO_DATA="false"
+```
+
+par :
+
+```bash
+SHOW_DEMO_DATA="true"
+```
+
+3. Redémarrer le serveur : dans le terminal, `Ctrl+C` puis
+
+```bash
+npm run dev
+```
+
+Les 100 profils fictifs sont toujours en base, ils réapparaissent aussitôt avec le bandeau orange et le badge « DÉMO ».
+
+Si un jour vous les avez supprimés (`npm run db:seed-demo -- --purge`), recréez-les avec :
+
+```bash
+npm run db:seed-demo
+```
 
 ## Créer le premier administrateur
 
@@ -96,12 +143,41 @@ npm run build        # prisma generate + next build
 npm run start        # serveur de production
 ```
 
-Déploiement type (Vercel + PostgreSQL managé, ou VPS/Docker) :
-1. Provisionner PostgreSQL et définir `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST=true`, `NEXT_PUBLIC_APP_URL`, `IP_HASH_SALT`.
-2. `npm run db:deploy` puis `npm run db:seed`.
-3. `npm run build` puis `npm run start` (ou déploiement Vercel).
-4. Créer le premier SUPER_ADMIN avec `create-admin`.
-5. Optionnel : activer Turnstile en renseignant les deux clés.
+### Déploiement sur Vercel (Prisma Postgres)
+
+La base est fournie par l'intégration **Prisma Postgres** du marketplace Vercel. Le projet
+utilise Prisma et Auth.js : aucun client Supabase ni SDK supplémentaire n'est nécessaire.
+
+1. **Installer l'intégration** Prisma Postgres depuis le projet Vercel. Elle crée ses variables
+   de base de données avec le préfixe choisi à l'installation (ici `prod_fjcs`), par exemple
+   `PROD_FJCS_DATABASE_URL`. Le projet les détecte automatiquement via [lib/env.ts](lib/env.ts) :
+   aucun renommage n'est requis. Une chaîne `postgresql://` est attendue (pas `prisma+postgres://`).
+
+2. **Ajouter les autres variables** dans Vercel (Settings > Environment Variables, Production) :
+
+   | Variable                                                 | Valeur                    |
+   | -------------------------------------------------------- | ------------------------- |
+   | `AUTH_SECRET`                                            | `openssl rand -base64 32` |
+   | `AUTH_TRUST_HOST`                                        | `true`                    |
+   | `NEXT_PUBLIC_APP_URL`                                    | URL publique du site      |
+   | `IP_HASH_SALT`                                           | `openssl rand -hex 24`    |
+   | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | optionnel (CAPTCHA)       |
+
+   Ne pas définir `SHOW_DEMO_DATA`.
+
+3. **Déployer.** Vercel exécute le script `vercel-build` du `package.json`, qui enchaîne
+   `prisma generate`, `prisma migrate deploy` puis `next build` : le schéma est donc créé et mis à
+   jour à chaque déploiement. Un échec de migration fait échouer le déploiement, ce qui est voulu.
+
+4. **Charger les référentiels** une seule fois, depuis un poste ayant les variables de production :
+
+```bash
+npm run db:seed
+npm run create-admin -- --email prenom.nom@fjcs.sn --name "Prénom Nom" --role SUPER_ADMIN
+```
+
+Pour un hébergement autonome (VPS), copier `.env.production.example` en `.env.production`,
+renseigner `DATABASE_URL` et `DIRECT_URL`, puis `npm run build && npm run start`.
 
 ## Sécurité et protection des données
 

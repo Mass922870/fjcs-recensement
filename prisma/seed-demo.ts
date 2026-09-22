@@ -20,6 +20,7 @@ import {
   SEED_SECTORS,
   SEED_SKILLS,
 } from "../lib/constants/referentials";
+import { getDirectDatabaseUrl } from "../lib/env";
 import { createYouthProfile } from "../services/youth.service";
 import type { CensusFormOutput } from "../schemas/youth";
 
@@ -29,7 +30,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL ?? "" }),
+  adapter: new PrismaPg({ connectionString: getDirectDatabaseUrl() }),
 });
 
 // Générateur pseudo-aléatoire déterministe (mulberry32) → seed reproductible.

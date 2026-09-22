@@ -227,3 +227,18 @@
 .form-public [data-slot="select-trigger"] {
   width: 100%;
 }
+
+/* Étiquettes permanentes des zones sur la carte (Leaflet). */
+.leaflet-tooltip.fjcs-zone-label {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(15, 20, 53, 0.12);
+  color: var(--foreground);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 6px;
+}
+.leaflet-tooltip.fjcs-zone-label::before {
+  display: none;
+}

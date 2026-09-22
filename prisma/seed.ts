@@ -19,9 +19,10 @@ import {
   SEED_SKILLS,
 } from "../lib/constants/referentials";
 import { DEFAULT_SETTINGS } from "../lib/constants/settings";
+import { getDirectDatabaseUrl } from "../lib/env";
 
 const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL ?? "" }),
+  adapter: new PrismaPg({ connectionString: getDirectDatabaseUrl() }),
 });
 
 async function main() {
@@ -33,13 +34,23 @@ async function main() {
     await prisma.quartier.upsert({
       where: { slug: q.slug },
       update: {},
-      create: { slug: q.slug, name: q.name, latitude: q.latitude ?? null, longitude: q.longitude ?? null, sortOrder: i },
+      create: {
+        slug: q.slug,
+        name: q.name,
+        latitude: q.latitude ?? null,
+        longitude: q.longitude ?? null,
+        sortOrder: i,
+      },
     });
   }
   console.log(`  ✓ ${SEED_QUARTIERS.length} quartiers`);
 
   for (const [i, c] of SEED_SKILL_CATEGORIES.entries()) {
-    await prisma.skillCategory.upsert({ where: { slug: c.slug }, update: {}, create: { ...c, sortOrder: i } });
+    await prisma.skillCategory.upsert({
+      where: { slug: c.slug },
+      update: {},
+      create: { ...c, sortOrder: i },
+    });
   }
   const categories = new Map((await prisma.skillCategory.findMany()).map((c) => [c.slug, c.id]));
   for (const [i, s] of SEED_SKILLS.entries()) {
@@ -54,7 +65,11 @@ async function main() {
   console.log(`  ✓ ${SEED_SKILL_CATEGORIES.length} catégories, ${SEED_SKILLS.length} compétences`);
 
   for (const [i, l] of SEED_EDUCATION_LEVELS.entries()) {
-    await prisma.educationLevel.upsert({ where: { slug: l.slug }, update: {}, create: { ...l, sortOrder: i } });
+    await prisma.educationLevel.upsert({
+      where: { slug: l.slug },
+      update: {},
+      create: { ...l, sortOrder: i },
+    });
   }
   console.log(`  ✓ ${SEED_EDUCATION_LEVELS.length} niveaux d'études`);
 
@@ -62,18 +77,32 @@ async function main() {
     await prisma.employmentStatus.upsert({
       where: { slug: st.slug },
       update: {},
-      create: { slug: st.slug, label: st.label, kind: st.kind, requiresDetail: st.requiresDetail ?? false, sortOrder: i },
+      create: {
+        slug: st.slug,
+        label: st.label,
+        kind: st.kind,
+        requiresDetail: st.requiresDetail ?? false,
+        sortOrder: i,
+      },
     });
   }
   console.log(`  ✓ ${SEED_EMPLOYMENT_STATUSES.length} situations professionnelles`);
 
   for (const [i, sec] of SEED_SECTORS.entries()) {
-    await prisma.sector.upsert({ where: { slug: sec.slug }, update: {}, create: { ...sec, sortOrder: i } });
+    await prisma.sector.upsert({
+      where: { slug: sec.slug },
+      update: {},
+      create: { ...sec, sortOrder: i },
+    });
   }
   console.log(`  ✓ ${SEED_SECTORS.length} secteurs d'activité`);
 
   for (const [i, it] of SEED_INTERESTS.entries()) {
-    await prisma.interest.upsert({ where: { slug: it.slug }, update: {}, create: { ...it, sortOrder: i } });
+    await prisma.interest.upsert({
+      where: { slug: it.slug },
+      update: {},
+      create: { ...it, sortOrder: i },
+    });
   }
   console.log(`  ✓ ${SEED_INTERESTS.length} centres d'intérêt`);
 
@@ -81,7 +110,13 @@ async function main() {
     await prisma.need.upsert({
       where: { slug: n.slug },
       update: { isSystem: n.isSystem ?? false },
-      create: { slug: n.slug, label: n.label, question: n.question, isSystem: n.isSystem ?? false, sortOrder: i },
+      create: {
+        slug: n.slug,
+        label: n.label,
+        question: n.question,
+        isSystem: n.isSystem ?? false,
+        sortOrder: i,
+      },
     });
   }
   console.log(`  ✓ ${SEED_NEEDS.length} besoins`);

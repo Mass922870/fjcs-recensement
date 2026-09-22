@@ -35,6 +35,11 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   serverExternalPackages: ["@react-pdf/renderer", "exceljs", "bcryptjs"],
+  // Le rapport PDF lit les logos sur le disque : sans cela, les fichiers de
+  // public/ ne sont pas embarqués dans la fonction serverless (Vercel).
+  outputFileTracingIncludes: {
+    "/api/rapports": ["./public/assets/**"],
+  },
   images: {
     formats: ["image/avif", "image/webp"],
   },

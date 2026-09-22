@@ -11,6 +11,7 @@ import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, type Role } from "../lib/generated/prisma/client";
+import { getDirectDatabaseUrl } from "../lib/env";
 import { hashPassword } from "../lib/auth/password";
 import { passwordSchema } from "../schemas/auth";
 
@@ -50,7 +51,7 @@ async function main() {
   }
 
   const prisma = new PrismaClient({
-    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL ?? "" }),
+    adapter: new PrismaPg({ connectionString: getDirectDatabaseUrl() }),
   });
   const passwordHash = await hashPassword(parsed.data);
   const user = await prisma.user.upsert({
