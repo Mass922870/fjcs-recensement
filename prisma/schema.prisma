@@ -1,0 +1,365 @@
+// Schéma PostgreSQL - Plateforme de recensement de la jeunesse (FJCS)
+// Les référentiels (Quartier, Skill, Interest, Need) sont des tables seedées,
+// ce qui permet des filtres et statistiques par jointure plutôt que par JSON.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  ANALYST
+  VIEWER
+}
+
+enum Gender {
+  FEMALE
+  MALE
+}
+
+/// Sens statistique d'une situation professionnelle (les libellés sont configurables, le sens reste stable pour les KPI).
+enum EmploymentKind {
+  STUDENT
+  EMPLOYED
+  ENTREPRENEUR
+  JOB_SEEKER
+  INACTIVE
+  OTHER
+}
+
+enum ProfileStatus {
+  ACTIVE
+  ARCHIVED
+  ANONYMIZED
+}
+
+enum ProfileSource {
+  PUBLIC // formulaire public
+  ADMIN // saisi par un administrateur
+  SEED // données de démonstration (jamais en production)
+}
+
+enum AuditAction {
+  PROFILE_CREATED
+  PROFILE_UPDATED
+  PROFILE_ARCHIVED
+  PROFILE_RESTORED
+  PROFILE_ANONYMIZED
+  PROFILE_DELETED
+  DUPLICATE_ATTEMPT
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  LOGOUT
+  USER_CREATED
+  USER_UPDATED
+  USER_DEACTIVATED
+  USER_PASSWORD_CHANGED
+  EXPORT_GENERATED
+  REPORT_GENERATED
+  SETTINGS_UPDATED
+  REFERENTIAL_UPDATED
+}
+
+// ---------------------------------------------------------------------------
+// Administration
+// ---------------------------------------------------------------------------
+
+model User {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  passwordHash        String
+  name                String
+  role                Role      @default(VIEWER)
+  isActive            Boolean   @default(true)
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  auditLogs       AuditLog[]
+  createdProfiles YouthProfile[] @relation("ProfileCreatedBy")
+
+  @@index([role])
+  @@index([isActive])
+}
+
+model Setting {
+  key         String   @id
+  value       String
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  actorId    String?
+  actor      User?       @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action     AuditAction
+  entityType String
+  entityId   String?
+  /// Métadonnées légères (filtres d'export, champs modifiés…) - jamais de données personnelles.
+  metadata   Json?
+  ipHash     String?
+  createdAt  DateTime    @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@index([actorId])
+  @@index([action])
+  @@index([entityType, entityId])
+}
+
+/// Compteur de rate limiting persistant (compatible déploiement multi-instances / serverless).
+model RateLimitBucket {
+  key     String   @id
+  count   Int      @default(0)
+  resetAt DateTime
+
+  @@index([resetAt])
+}
+
+// ---------------------------------------------------------------------------
+// Référentiels
+// ---------------------------------------------------------------------------
+
+model Quartier {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  latitude  Float?
+  longitude Float?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profiles YouthProfile[]
+}
+
+model SkillCategory {
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  label     String
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  skills Skill[]
+}
+
+model Skill {
+  id         String        @id @default(cuid())
+  slug       String        @unique
+  label      String
+  categoryId String
+  category   SkillCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  isActive   Boolean       @default(true)
+  sortOrder  Int           @default(0)
+
+  youths YouthSkill[]
+
+  @@index([categoryId])
+}
+
+model Interest {
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  label     String
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  youths YouthInterest[]
+}
+
+model Need {
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  label     String
+  /// Question posée dans le formulaire (ex. « Souhaitez-vous suivre une formation ? »)
+  question  String
+  /// Vrai pour les besoins utilisés par les indicateurs (non supprimables, renommables).
+  isSystem  Boolean @default(false)
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  youths YouthNeed[]
+}
+
+model EducationLevel {
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  label     String
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  educations Education[]
+}
+
+model EmploymentStatus {
+  id             String         @id @default(cuid())
+  slug           String         @unique
+  label          String
+  kind           EmploymentKind @default(OTHER)
+  /// Demande une précision libre (ex. « Autre »).
+  requiresDetail Boolean        @default(false)
+  isActive       Boolean        @default(true)
+  sortOrder      Int            @default(0)
+
+  employments Employment[]
+}
+
+/// Secteurs d'activité proposés aux entrepreneurs.
+model Sector {
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  label     String
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+}
+
+// ---------------------------------------------------------------------------
+// Profil jeune
+// ---------------------------------------------------------------------------
+
+model YouthProfile {
+  id                String        @id @default(cuid())
+  /// Identifiant de participation non sensible communiqué au jeune (ex. FJCS-7K3M9Q).
+  participationCode String        @unique
+  firstName         String
+  lastName          String
+  birthDate         DateTime      @db.Date
+  gender            Gender
+  /// Numéro tel que saisi (affichage).
+  phone             String
+  /// Numéro au format E.164 - clé de détection des doublons. Null après anonymisation.
+  phoneNormalized   String?       @unique
+  email             String?
+  quartierId        String?
+  quartier          Quartier?     @relation(fields: [quartierId], references: [id], onDelete: SetNull)
+  /// Précision libre si le quartier n'est pas dans la liste.
+  quartierOther     String?
+  status            ProfileStatus @default(ACTIVE)
+  source            ProfileSource @default(PUBLIC)
+  /// Vrai uniquement pour les données de démonstration - exclues des statistiques de production.
+  isDemo            Boolean       @default(false)
+  customSkills      String?
+  customInterests   String?
+  createdById       String?
+  createdBy         User?         @relation("ProfileCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  archivedAt        DateTime?
+  anonymizedAt      DateTime?
+
+  education  Education?
+  employment Employment?
+  project    Project?
+  consent    Consent?
+  skills     YouthSkill[]
+  interests  YouthInterest[]
+  needs      YouthNeed[]
+
+  @@index([status, isDemo])
+  @@index([createdAt(sort: Desc)])
+  @@index([quartierId])
+  @@index([gender])
+  @@index([birthDate])
+  @@index([lastName, firstName])
+}
+
+model Education {
+  id                 String         @id @default(cuid())
+  youthId            String         @unique
+  youth              YouthProfile   @relation(fields: [youthId], references: [id], onDelete: Cascade)
+  levelId            String
+  level              EducationLevel @relation(fields: [levelId], references: [id], onDelete: Restrict)
+  field              String?
+  institution        String?
+  diploma            String?
+  vocationalTraining String?
+  otherTraining      String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  @@index([levelId])
+}
+
+model Employment {
+  id          String           @id @default(cuid())
+  youthId     String           @unique
+  youth       YouthProfile     @relation(fields: [youthId], references: [id], onDelete: Cascade)
+  statusId    String
+  status      EmploymentStatus @relation(fields: [statusId], references: [id], onDelete: Restrict)
+  otherDetail String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([statusId])
+}
+
+/// Activité entrepreneuriale déclarée (uniquement si situation = ENTREPRENEUR).
+model Project {
+  id           String       @id @default(cuid())
+  youthId      String       @unique
+  youth        YouthProfile @relation(fields: [youthId], references: [id], onDelete: Cascade)
+  sector       String
+  name         String?
+  isFormalized Boolean      @default(false)
+  sinceMonths  Int?
+  teamSize     Int?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([sector])
+  @@index([isFormalized])
+}
+
+model Consent {
+  id          String       @id @default(cuid())
+  youthId     String       @unique
+  youth       YouthProfile @relation(fields: [youthId], references: [id], onDelete: Cascade)
+  accepted    Boolean
+  textVersion String
+  acceptedAt  DateTime     @default(now())
+  ipHash      String?
+  userAgent   String?
+}
+
+model YouthSkill {
+  youthId String
+  skillId String
+  youth   YouthProfile @relation(fields: [youthId], references: [id], onDelete: Cascade)
+  skill   Skill        @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([youthId, skillId])
+  @@index([skillId])
+}
+
+model YouthInterest {
+  youthId    String
+  interestId String
+  youth      YouthProfile @relation(fields: [youthId], references: [id], onDelete: Cascade)
+  interest   Interest     @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  @@id([youthId, interestId])
+  @@index([interestId])
+}
+
+model YouthNeed {
+  youthId String
+  needId  String
+  youth   YouthProfile @relation(fields: [youthId], references: [id], onDelete: Cascade)
+  need    Need         @relation(fields: [needId], references: [id], onDelete: Cascade)
+
+  @@id([youthId, needId])
+  @@index([needId])
+}

@@ -1,26 +1,229 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+  --color-brand-950: var(--brand-950);
+  --color-cyan-50: var(--cyan-50);
+  --color-cyan-100: var(--cyan-100);
+  --color-cyan-200: var(--cyan-200);
+  --color-cyan-300: var(--cyan-300);
+  --color-cyan-400: var(--cyan-400);
+  --color-cyan-500: var(--cyan-500);
+  --color-cyan-600: var(--cyan-600);
+  --color-cyan-700: var(--cyan-700);
+  --color-green-50: var(--green-50);
+  --color-green-100: var(--green-100);
+  --color-green-200: var(--green-200);
+  --color-green-300: var(--green-300);
+  --color-green-400: var(--green-400);
+  --color-green-500: var(--green-500);
+  --color-green-600: var(--green-600);
+  --color-green-700: var(--green-700);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-chart-6: var(--chart-6);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ------------------------------------------------------------------
+   Identité FJCS - palette dérivée du logo officiel (public/assets/logo-fjcs.png)
+   bleu profond #1a0d90 · cyan #76c7ce · vert #41792f · blanc
+   ------------------------------------------------------------------ */
+:root {
+  --brand-50: #eef0fb;
+  --brand-100: #dde0f7;
+  --brand-200: #bcc1ef;
+  --brand-300: #9399e3;
+  --brand-400: #6a6bd6;
+  --brand-500: #4a45c4;
+  --brand-600: #3128ad;
+  --brand-700: #1a0d90;
+  --brand-800: #170c78;
+  --brand-900: #130a5e;
+  --brand-950: #0c0640;
+
+  --cyan-50: #effafb;
+  --cyan-100: #d5f1f3;
+  --cyan-200: #afe3e7;
+  --cyan-300: #76c7ce;
+  --cyan-400: #4cb1ba;
+  --cyan-500: #2f95a0;
+  --cyan-600: #257a85;
+  --cyan-700: #22636d;
+
+  --green-50: #f1f8ee;
+  --green-100: #dfefd9;
+  --green-200: #c1dfb6;
+  --green-300: #97c887;
+  --green-400: #6cad59;
+  --green-500: #4c913b;
+  --green-600: #41792f;
+  --green-700: #305c25;
+
+  --background: #ffffff;
+  --foreground: #0f1435;
+  --card: #ffffff;
+  --card-foreground: #0f1435;
+  --popover: #ffffff;
+  --popover-foreground: #0f1435;
+  --primary: var(--brand-700);
+  --primary-foreground: #ffffff;
+  --secondary: #f3f4fb;
+  --secondary-foreground: #1d2150;
+  --muted: #f4f5fa;
+  --muted-foreground: #5e6485;
+  --accent: var(--brand-50);
+  --accent-foreground: var(--brand-800);
+  --destructive: #c62828;
+  --success: var(--green-600);
+  --success-foreground: #ffffff;
+  --warning: #b7791f;
+  --border: #e4e6f0;
+  --input: #dfe2ee;
+  --ring: var(--brand-500);
+  /* Palette catégorielle validée (contraste, daltonisme) - ordre fixe, jamais cyclée. */
+  --chart-1: #4a45c4;
+  --chart-2: #0e94a8;
+  --chart-3: #4f9a3c;
+  --chart-4: #8c7ae6;
+  --chart-5: #c2410c;
+  --chart-6: #a3a8c9;
+  --radius: 0.75rem;
+  --sidebar: #0f0a4d;
+  --sidebar-foreground: #d9dcf2;
+  --sidebar-primary: var(--cyan-300);
+  --sidebar-primary-foreground: #0c0640;
+  --sidebar-accent: rgba(255, 255, 255, 0.08);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: var(--cyan-300);
+}
+
+.dark {
+  --background: #0b0e24;
+  --foreground: #eef0fb;
+  --card: #121634;
+  --card-foreground: #eef0fb;
+  --popover: #121634;
+  --popover-foreground: #eef0fb;
+  --primary: var(--brand-300);
+  --primary-foreground: #0c0640;
+  --secondary: #1b2046;
+  --secondary-foreground: #eef0fb;
+  --muted: #1b2046;
+  --muted-foreground: #a4a9cc;
+  --accent: #1b2046;
+  --accent-foreground: #eef0fb;
+  --destructive: #ef5350;
+  --success: var(--green-400);
+  --success-foreground: #0c0640;
+  --warning: #e0a437;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: var(--brand-300);
+  --chart-1: var(--brand-300);
+  --chart-2: var(--cyan-300);
+  --chart-3: var(--green-400);
+  --chart-4: var(--brand-500);
+  --chart-5: var(--cyan-500);
+  --chart-6: var(--green-200);
+  --sidebar: #0b0e24;
+  --sidebar-foreground: #d9dcf2;
+  --sidebar-primary: var(--cyan-300);
+  --sidebar-primary-foreground: #0c0640;
+  --sidebar-accent: rgba(255, 255, 255, 0.08);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: var(--cyan-300);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  html {
+    @apply font-sans scroll-smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  h1, h2, h3, h4 {
+    @apply font-heading tracking-tight text-balance;
+  }
+  ::selection {
+    background: var(--brand-100);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@utility container-page {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+}
+
+/* Formulaire public : contrôles plus hauts pour le mobile (cibles tactiles ≥ 44px). */
+.form-public [data-slot="input"],
+.form-public [data-slot="select-trigger"],
+.form-public [data-slot="textarea"] {
+  min-height: 2.75rem;
+  font-size: 1rem;
+}
+.form-public [data-slot="select-trigger"] {
+  width: 100%;
 }

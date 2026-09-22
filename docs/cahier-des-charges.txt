@@ -1,0 +1,993 @@
+PROMPT CLAUDE CODE - PLATEFORME DE RECENSEMENT DES JEUNES DU FJCS
+
+Tu es un Lead Software Engineer, Architecte Full-Stack, UX/UI Designer senior et Data Engineer.
+
+Ta mission est de concevoir et développer une plateforme web professionnelle de recensement et d'analyse de la jeunesse pour :
+
+FOYER DES JEUNES ET DE LA CULTURE DE SANGALKAM (FJCS)
+
+Le projet est porté par la Commission Transformation Numérique et Innovation du FJCS.
+
+IMPORTANT :
+Il ne s'agit PAS d'un simple formulaire en ligne.
+
+Je veux construire une véritable plateforme numérique de connaissance de la jeunesse de Sangalkam permettant :
+- de recenser les jeunes ;
+- de structurer leurs informations ;
+- de produire automatiquement des statistiques ;
+- d'analyser les besoins de la jeunesse ;
+- d'identifier les compétences ;
+- d'identifier les entrepreneurs et porteurs de projets ;
+- d'identifier les besoins en formation et emploi ;
+- de produire des rapports ;
+- de permettre aux administrateurs du FJCS de piloter les données ;
+- de fournir une base de données exploitable pour les futurs programmes et projets du FJCS.
+
+Le produit doit être moderne, professionnel, rapide, sécurisé, responsive et réellement utilisable en production.
+
+==================================================
+1. IDENTITÉ VISUELLE
+==================================================
+
+Le logo officiel du FJCS est fourni avec ce projet.
+
+Le fichier /public/assets/logo-fjcs.png est le logo officiel du FJCS.
+Ne le recrée pas et ne le modifie pas.
+Utilise-le comme source officielle de l'identité visuelle.
+
+Le logo contient principalement :
+- bleu ;
+- bleu/cyan turquoise ;
+- vert ;
+- blanc.
+
+Extrais visuellement les couleurs dominantes du logo et construis une palette cohérente autour de celles-ci.
+
+Le design doit être :
+- moderne ;
+- institutionnel mais jeune ;
+- élégant ;
+- très propre ;
+- professionnel ;
+- minimaliste ;
+- respirant ;
+- mobile-first ;
+- inspiré des meilleurs dashboards SaaS modernes de 2025/2026.
+
+Évite absolument :
+- les interfaces vieillissantes ;
+- les gros blocs colorés inutiles ;
+- les gradients excessifs ;
+- les animations inutiles ;
+- les interfaces qui donnent l'impression d'avoir été générées automatiquement ;
+- les tableaux surchargés ;
+- les formulaires interminables sur une seule page.
+
+Le logo doit être visible dans le header et dans l'espace administration.
+
+Créer une véritable identité graphique FJCS.
+
+==================================================
+2. STACK TECHNIQUE
+==================================================
+
+Avant de commencer :
+1. inspecte le projet existant ;
+2. analyse les fichiers ;
+3. détecte automatiquement la stack existante ;
+4. conserve ce qui est pertinent ;
+5. ne réécris pas inutilement le projet.
+
+Si aucun projet n'est encore initialisé, utilise une stack moderne et stable.
+
+Stack recommandée :
+- Next.js
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- PostgreSQL
+- Prisma
+- authentification sécurisée compatible Next.js
+- Recharts
+- Leaflet + OpenStreetMap
+- Zod
+- React Hook Form
+- Lucide Icons
+
+Le code doit être :
+- TypeScript strict ;
+- modulaire ;
+- maintenable ;
+- documenté lorsque nécessaire ;
+- sans duplication inutile ;
+- avec gestion propre des erreurs ;
+- avec variables d'environnement ;
+- sans secrets dans le code.
+
+==================================================
+3. ARCHITECTURE GLOBALE
+==================================================
+
+La plateforme doit avoir deux grandes parties :
+
+A. SITE PUBLIC
+B. ESPACE ADMINISTRATION
+
+Architecture :
+/
+├── accueil
+├── recensement
+├── confirmation
+├── confidentialite
+├── contact
+│
+└── admin
+    ├── dashboard
+    ├── jeunes
+    ├── statistiques
+    ├── cartographie
+    ├── rapports
+    ├── exports
+    ├── utilisateurs
+    ├── paramètres
+    └── journal-audit
+
+==================================================
+4. PAGE D'ACCUEIL
+==================================================
+
+Créer une landing page moderne.
+
+Hero section :
+Logo FJCS
+
+Titre :
+"Recensement de la Jeunesse de Sangalkam"
+
+Sous-titre :
+"Construire une meilleure connaissance de notre jeunesse pour mieux répondre à ses besoins."
+
+CTA principal :
+"Participer au recensement"
+
+CTA secondaire :
+"En savoir plus"
+
+Ajouter une section expliquant :
+"Pourquoi ce recensement ?"
+
+Avec 3 à 5 cartes :
+- Mieux connaître la jeunesse
+- Identifier les compétences
+- Comprendre les besoins
+- Faciliter l'accès aux opportunités
+- Orienter les futurs projets
+
+Ajouter une section :
+"Les données au service de l'action"
+
+Expliquer que les informations recueillies permettront au FJCS de mieux comprendre les réalités de la jeunesse et d'orienter ses actions.
+
+Ajouter une section FAQ.
+
+Ajouter footer professionnel :
+FJCS
+Foyer des Jeunes et de la Culture de Sangalkam
+
+Liens :
+- Accueil
+- Recensement
+- Confidentialité
+- Contact
+
+==================================================
+5. FORMULAIRE DE RECENSEMENT
+==================================================
+
+Le formulaire doit être MULTI-ÉTAPES.
+
+NE PAS afficher 50 champs sur une seule page.
+
+Afficher une progression :
+Étape 1 / 7
+
+Étape 1 - Informations personnelles
+- prénom
+- nom
+- date de naissance
+- sexe
+- numéro de téléphone
+- email
+- quartier / zone de résidence
+
+Étape 2 - Formation
+- niveau d'études
+- domaine d'études
+- établissement
+- diplôme obtenu
+- formation professionnelle
+- autres formations
+
+Étape 3 - Situation professionnelle
+Choix :
+- étudiant
+- salarié
+- entrepreneur
+- indépendant
+- demandeur d'emploi
+- apprenti
+- sans activité
+- autre
+
+Si entrepreneur, afficher :
+- domaine d'activité
+- nom de l'activité
+- activité formalisée ou non
+- depuis combien de temps
+- nombre approximatif de personnes impliquées
+
+Étape 4 - Compétences
+
+Permettre de sélectionner plusieurs compétences.
+
+Catégories :
+Numérique :
+- développement web
+- data
+- IA
+- design
+- réseaux
+- cybersécurité
+- bureautique
+
+Entrepreneuriat :
+- commerce
+- gestion
+- marketing
+- comptabilité
+
+Artisanat :
+- couture
+- menuiserie
+- mécanique
+- électricité
+- plomberie
+- etc.
+
+Culture :
+- musique
+- danse
+- théâtre
+- audiovisuel
+- photographie
+
+Également :
+- sport
+- agriculture
+- communication
+
+Ajouter :
+"Autre compétence"
+
+avec champ texte.
+
+Étape 5 - Situation et besoins
+
+Questions :
+- Êtes-vous actuellement à la recherche d'un emploi ?
+- Souhaitez-vous suivre une formation ?
+- Avez-vous besoin d'accompagnement ?
+- Avez-vous un projet entrepreneurial ?
+- Avez-vous besoin de financement ?
+- Recherchez-vous des opportunités de stage ?
+- Recherchez-vous des opportunités professionnelles ?
+
+Permettre plusieurs réponses.
+
+Étape 6 - Centres d'intérêt
+- entrepreneuriat
+- numérique
+- sport
+- culture
+- environnement
+- agriculture
+- formation
+- emploi
+- engagement communautaire
+- leadership
+- innovation
+- autre
+
+Étape 7 - Validation
+
+Afficher un résumé des informations saisies.
+
+L'utilisateur peut revenir modifier chaque section.
+
+Ajouter une case obligatoire :
+"J'accepte que mes informations soient collectées et utilisées dans le cadre du recensement de la jeunesse du FJCS, conformément à la politique de confidentialité."
+
+Ajouter un lien vers la politique de confidentialité.
+
+Bouton :
+"Valider mon inscription"
+
+==================================================
+6. UX DU FORMULAIRE
+==================================================
+
+Le formulaire doit être extrêmement agréable à utiliser.
+
+Contraintes :
+- mobile-first ;
+- sauvegarde temporaire de progression ;
+- validation en temps réel ;
+- messages d'erreur clairs ;
+- aucun rechargement inutile ;
+- boutons précédent/suivant ;
+- barre de progression ;
+- champs conditionnels ;
+- auto-focus intelligent ;
+- clavier mobile adapté ;
+- possibilité de reprendre le formulaire si techniquement possible.
+
+Après soumission :
+Afficher une page de confirmation élégante.
+
+"Merci pour votre participation !"
+
+"Votre contribution nous aide à mieux comprendre les besoins et les aspirations de la jeunesse de Sangalkam."
+
+Générer éventuellement un identifiant de participation non sensible.
+
+==================================================
+7. BASE DE DONNÉES
+==================================================
+
+Concevoir un modèle PostgreSQL propre.
+
+Prévoir notamment :
+User
+YouthProfile
+Education
+Employment
+Skill
+YouthSkill
+Interest
+YouthInterest
+Need
+YouthNeed
+Project
+Consent
+AuditLog
+
+Éviter les colonnes JSON gigantesques lorsque des relations structurées sont plus pertinentes.
+
+Prévoir createdAt et updatedAt sur les principales entités.
+
+Créer des index SQL pertinents pour les recherches et statistiques.
+
+Prévoir la détection de doublons.
+
+Un même numéro de téléphone ne doit pas permettre plusieurs inscriptions normales sans contrôle.
+
+==================================================
+8. ADMINISTRATION
+==================================================
+
+Créer un véritable dashboard professionnel.
+
+Sidebar :
+- Dashboard
+- Jeunes recensés
+- Statistiques
+- Cartographie
+- Rapports
+- Exports
+- Utilisateurs
+- Journal d'activité
+- Paramètres
+
+Header :
+- Recherche globale
+- Notifications
+- Profil administrateur
+
+==================================================
+9. DASHBOARD
+==================================================
+
+Afficher des KPI cards :
+- Total jeunes recensés
+- Nouveaux cette semaine
+- Nouveaux ce mois
+- Entrepreneurs
+- Étudiants
+- Demandeurs d'emploi
+- Jeunes souhaitant une formation
+
+Puis graphiques :
+- Répartition par sexe
+- Répartition par âge
+- Répartition par situation professionnelle
+- Répartition par niveau d'études
+- Répartition par quartier
+- Principales compétences
+- Principaux besoins
+- Centres d'intérêt
+
+Le dashboard doit être interactif.
+
+Ajouter des filtres globaux :
+- période
+- sexe
+- tranche d'âge
+- quartier
+- niveau d'études
+- situation professionnelle
+
+Tous les graphiques doivent se mettre à jour avec les filtres.
+
+==================================================
+10. PAGE "JEUNES"
+==================================================
+
+Créer une table professionnelle.
+
+Colonnes :
+- Nom
+- Âge
+- Sexe
+- Quartier
+- Formation
+- Situation
+- Compétences
+- Date d'inscription
+- Statut
+
+Fonctionnalités :
+- recherche ;
+- filtres ;
+- tri ;
+- pagination ;
+- affichage du profil ;
+- modification ;
+- archivage ;
+- suppression selon permissions.
+
+NE PAS afficher inutilement toutes les informations personnelles dans la table.
+
+Cliquer sur une personne ouvre une fiche détaillée.
+
+==================================================
+11. FICHE D'UN JEUNE
+==================================================
+
+Créer une page détaillée organisée par sections :
+- Informations personnelles
+- Formation
+- Situation professionnelle
+- Compétences
+- Centres d'intérêt
+- Besoins
+- Projets
+- Consentement
+- Historique
+
+Ajouter des badges visuels.
+
+Exemple :
+ENTREPRENEUR
+DATA
+NUMÉRIQUE
+RECHERCHE D'EMPLOI
+
+==================================================
+12. STATISTIQUES AVANCÉES
+==================================================
+
+Créer une page spécialement dédiée à l'analyse.
+
+Permettre de croiser les données.
+
+Exemples :
+- emploi par niveau d'étude ;
+- chômage par tranche d'âge ;
+- compétences par quartier ;
+- besoins de formation par niveau d'étude ;
+- entrepreneuriat par tranche d'âge ;
+- femmes/hommes par situation professionnelle ;
+- jeunes ayant un projet + besoin de financement ;
+- compétences numériques par quartier.
+
+Les statistiques doivent être calculées à partir de données réelles de PostgreSQL.
+
+NE JAMAIS mettre de chiffres fictifs dans le dashboard de production.
+
+Si aucune donnée :
+"Les statistiques apparaîtront dès que les premières données seront collectées."
+
+==================================================
+13. CARTOGRAPHIE
+==================================================
+
+Créer une page "Cartographie".
+
+Afficher une carte de Sangalkam avec des statistiques agrégées.
+
+Important :
+NE PAS afficher publiquement la position exacte d'une personne.
+
+Utiliser uniquement des agrégations géographiques appropriées.
+
+Exemples :
+Nombre de jeunes par zone/quartier.
+
+Filtres :
+- âge
+- sexe
+- situation professionnelle
+- compétences
+- besoins
+
+Ajouter une légende.
+
+==================================================
+14. RAPPORTS
+==================================================
+
+Créer un système permettant de générer des rapports.
+
+Rapport général :
+- nombre total recensé
+- démographie
+- formation
+- emploi
+- entrepreneuriat
+- compétences
+- besoins
+- centres d'intérêt
+
+Prévoir génération :
+- PDF
+- CSV
+- Excel
+
+Les rapports doivent afficher :
+- Logo FJCS
+- Titre
+- Date de génération
+- Période analysée
+- Statistiques
+- Graphiques
+- Conclusion descriptive basée uniquement sur les données.
+
+==================================================
+15. EXPORTS
+==================================================
+
+Créer une page Export.
+
+Permettre :
+- CSV
+- Excel
+
+Filtres avant export :
+- période
+- quartier
+- sexe
+- âge
+- situation
+- niveau d'études
+- compétences
+
+Les exports contenant des données personnelles doivent être réservés aux utilisateurs autorisés.
+
+Journaliser les exports.
+
+==================================================
+16. AUTHENTIFICATION ET RÔLES
+==================================================
+
+Créer un système RBAC.
+
+Rôles :
+SUPER_ADMIN
+ADMIN
+ANALYST
+VIEWER
+
+SUPER_ADMIN :
+tout accès
+
+ADMIN :
+gestion des données
+
+ANALYST :
+statistiques + rapports + exports autorisés
+
+VIEWER :
+lecture uniquement
+
+Protéger toutes les routes admin côté serveur.
+
+NE JAMAIS faire confiance uniquement au frontend pour la sécurité.
+
+==================================================
+17. SÉCURITÉ
+==================================================
+
+La plateforme collecte des données personnelles.
+
+La sécurité est donc une priorité.
+
+Implémenter :
+- validation serveur ;
+- validation frontend ;
+- protection contre SQL injection via ORM ;
+- protection XSS ;
+- CSRF lorsque pertinent ;
+- rate limiting ;
+- anti-spam ;
+- CAPTCHA ou mécanisme équivalent si nécessaire ;
+- headers de sécurité ;
+- contrôle d'accès ;
+- logs ;
+- sessions sécurisées ;
+- mots de passe hashés ;
+- aucune donnée sensible dans les logs.
+
+Ne jamais exposer les données personnelles dans une API publique.
+
+Prévoir une politique de conservation et de suppression des données.
+
+Prévoir une fonctionnalité permettant aux administrateurs autorisés de supprimer/anonymiser les données selon les règles définies par le FJCS.
+
+Le système doit respecter les exigences applicables en matière de protection des données personnelles au Sénégal.
+
+==================================================
+18. ANTI-ABUS
+==================================================
+
+Le formulaire public doit être protégé contre :
+- spam ;
+- bots ;
+- soumissions massives ;
+- doublons ;
+- requêtes automatisées.
+
+Mettre en place un rate limiting côté serveur.
+
+Ajouter éventuellement CAPTCHA uniquement lorsque nécessaire afin de ne pas dégrader l'expérience utilisateur.
+
+==================================================
+19. ACCESSIBILITÉ
+==================================================
+
+Respecter autant que possible WCAG.
+
+Prévoir :
+- contraste suffisant ;
+- navigation clavier ;
+- labels accessibles ;
+- focus visible ;
+- textes alternatifs ;
+- boutons compréhensibles ;
+- responsive mobile/tablette/desktop.
+
+==================================================
+20. RESPONSIVE DESIGN
+==================================================
+
+La majorité des jeunes utiliseront probablement un smartphone.
+
+Le site doit donc être pensé MOBILE FIRST.
+
+Tester :
+320px
+375px
+390px
+430px
+768px
+1024px
+1440px
+
+Le formulaire doit être particulièrement optimisé pour mobile.
+
+==================================================
+21. PERFORMANCE
+==================================================
+
+Objectif :
+interface rapide et fluide.
+
+Optimiser :
+- images ;
+- logo ;
+- bundle JavaScript ;
+- requêtes SQL ;
+- pagination ;
+- cache lorsque pertinent ;
+- chargement des graphiques ;
+- lazy loading.
+
+Éviter de charger toute la base de données côté frontend.
+
+==================================================
+22. ÉTATS D'INTERFACE
+==================================================
+
+Chaque écran doit prévoir :
+- Loading state
+- Empty state
+- Error state
+- Success state
+
+Loading :
+skeletons propres.
+
+Empty :
+"Nous n'avons encore aucune donnée correspondant à ces critères."
+
+Error :
+"Une erreur est survenue. Veuillez réessayer."
+
+==================================================
+23. DESIGN SYSTEM
+==================================================
+
+Créer un petit design system cohérent.
+
+Composants réutilisables :
+Button
+Input
+Select
+MultiSelect
+Card
+Badge
+Modal
+Dialog
+Table
+Pagination
+Tabs
+Alert
+Toast
+Skeleton
+Dropdown
+DatePicker
+ChartCard
+StatCard
+
+Ne pas créer des composants différents pour exactement le même besoin.
+
+==================================================
+24. DONNÉES DE DÉMONSTRATION
+==================================================
+
+Créer éventuellement un seed de développement.
+
+IMPORTANT :
+Les données fictives doivent être clairement identifiées comme données de développement.
+
+Ne jamais mélanger les données de démonstration avec les données réelles.
+
+Créer par exemple 100 profils fictifs uniquement pour tester les dashboards.
+
+==================================================
+25. ENVIRONNEMENT
+==================================================
+
+Créer :
+.env.example
+
+avec :
+DATABASE_URL=
+AUTH_SECRET=
+NEXT_PUBLIC_APP_URL=
+
+Ne jamais committer .env ou des secrets.
+
+Créer un README professionnel expliquant :
+- installation ;
+- variables d'environnement ;
+- base de données ;
+- migrations ;
+- seed ;
+- lancement développement ;
+- build production ;
+- déploiement ;
+- création du premier administrateur.
+
+==================================================
+26. TESTS
+==================================================
+
+Créer des tests pertinents.
+
+Tester au minimum :
+- validation du formulaire ;
+- création d'un profil ;
+- détection des doublons ;
+- authentification ;
+- permissions ;
+- statistiques ;
+- export ;
+- accès aux routes protégées.
+
+Effectuer également des tests de build.
+
+==================================================
+27. QUALITÉ DU CODE
+==================================================
+
+Avant chaque grande modification :
+inspecte le code existant.
+
+Ne crée pas de fichiers inutiles.
+
+Ne duplique pas la logique.
+
+Ne mets pas toute l'application dans un seul fichier.
+
+Séparer correctement :
+components
+lib
+services
+db
+types
+hooks
+app/routes
+api
+
+Utiliser des types stricts.
+
+Éviter any sauf justification exceptionnelle.
+
+==================================================
+28. EXPÉRIENCE ADMINISTRATEUR
+==================================================
+
+L'administrateur doit pouvoir comprendre le système immédiatement.
+
+Le dashboard doit répondre rapidement à :
+- Combien de jeunes avons-nous ?
+- Qui sont-ils ?
+- Où sont-ils ?
+- Que font-ils ?
+- Quelles compétences possèdent-ils ?
+- Quels sont leurs besoins ?
+- Quels sont leurs projets ?
+- Quels domaines nécessitent notre intervention ?
+
+Le système doit transformer les données brutes en informations compréhensibles.
+
+==================================================
+29. FUTURES ÉVOLUTIONS
+==================================================
+
+Préparer l'architecture pour pouvoir ajouter plus tard :
+- notifications SMS ;
+- WhatsApp ;
+- campagnes de communication ;
+- système d'opportunités ;
+- offres d'emploi ;
+- formations ;
+- événements ;
+- candidatures ;
+- espace jeune ;
+- QR code ;
+- statistiques publiques anonymisées ;
+- API ;
+- application mobile.
+
+NE PAS développer toutes ces fonctionnalités maintenant.
+
+L'architecture doit simplement permettre leur ajout futur sans devoir réécrire toute l'application.
+
+==================================================
+30. PRINCIPLE IMPORTANT
+==================================================
+
+Le produit final doit donner l'impression d'avoir été conçu par :
+- une agence digitale professionnelle ;
+- un designer UX/UI senior ;
+- une équipe de développeurs expérimentés ;
+- un data engineer ;
+- un spécialiste sécurité.
+
+Il ne doit PAS ressembler à un prototype généré automatiquement.
+
+Chaque écran doit avoir une vraie hiérarchie visuelle.
+
+Chaque fonctionnalité doit avoir une raison.
+
+Chaque donnée doit être correctement structurée.
+
+==================================================
+31. MÉTHODE DE TRAVAIL
+==================================================
+
+NE COMMENCE PAS immédiatement à coder.
+
+Première étape :
+analyse le projet actuel.
+
+Puis présente-moi :
+1. architecture proposée ;
+2. stack détectée/proposée ;
+3. structure de la base de données ;
+4. arborescence du projet ;
+5. principales pages ;
+6. composants ;
+7. stratégie de sécurité ;
+8. stratégie de statistiques ;
+9. plan de développement par étapes.
+
+Après validation du plan, commence l'implémentation.
+
+Développe par étapes cohérentes.
+
+Après chaque grande étape :
+- lance les tests ;
+- lance le lint ;
+- vérifie le build ;
+- corrige les erreurs ;
+- vérifie les routes ;
+- vérifie le responsive.
+
+NE PAS considérer une fonctionnalité comme terminée simplement parce que le code compile.
+
+==================================================
+32. CRITÈRES DE VALIDATION FINALE
+==================================================
+
+[ ] Landing page professionnelle
+[ ] Logo FJCS intégré
+[ ] Identité visuelle cohérente
+[ ] Formulaire multi-étapes
+[ ] Validation frontend
+[ ] Validation backend
+[ ] Base PostgreSQL
+[ ] Détection doublons
+[ ] Consentement
+[ ] Dashboard
+[ ] KPI
+[ ] Graphiques
+[ ] Filtres
+[ ] Statistiques croisées
+[ ] Recherche
+[ ] Pagination
+[ ] Fiche jeune
+[ ] Cartographie
+[ ] Exports CSV
+[ ] Exports Excel
+[ ] Rapports PDF
+[ ] Authentification
+[ ] RBAC
+[ ] Audit logs
+[ ] Protection des données
+[ ] Rate limiting
+[ ] Responsive mobile
+[ ] Loading states
+[ ] Empty states
+[ ] Error states
+[ ] Tests
+[ ] README
+[ ] .env.example
+[ ] Build production réussi
+
+==================================================
+OBJECTIF FINAL
+==================================================
+
+Je ne veux pas simplement :
+"un site avec un formulaire".
+
+Je veux :
+"une plateforme numérique de recensement, de connaissance et d'analyse de la jeunesse de Sangalkam pour le FJCS."
+
+Elle doit permettre au FJCS de passer de :
+
+DONNÉES → INFORMATION → ANALYSE → DÉCISION → ACTION → MESURE DE L'IMPACT.
+
+Commence maintenant par analyser le projet existant et me présenter l'architecture proposée avant d'écrire le code.

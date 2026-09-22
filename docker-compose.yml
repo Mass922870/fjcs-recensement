@@ -1,0 +1,23 @@
+# Base PostgreSQL locale pour le développement.
+# Démarrage : docker compose up -d
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: fjcs-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fjcs
+      POSTGRES_PASSWORD: fjcs_dev_password
+      POSTGRES_DB: fjcs_recensement
+    ports:
+      - "5433:5432"
+    volumes:
+      - fjcs_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fjcs -d fjcs_recensement"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  fjcs_pgdata:
