@@ -1,10 +1,13 @@
 /**
- * Résolution des variables d'environnement de base de données.
+ * Résolution des variables d'environnement de l'application.
  *
  * L'intégration Prisma Postgres de Vercel crée les variables avec un préfixe
  * choisi à l'installation (ici « prod_fjcs »), par exemple
  * PROD_FJCS_DATABASE_URL. Ce module retrouve la bonne variable quel que soit
  * son préfixe, afin que le code applicatif n'ait jamais à le connaître.
+ *
+ * Attention : les variables NEXT_PUBLIC_* sont figées à la compilation par
+ * Next.js. Un préfixe leur est fatal, elles doivent garder leur nom exact.
  */
 
 /** Noms reconnus, par ordre de préférence pour l'application. */
@@ -76,4 +79,34 @@ export function getDirectDatabaseUrl(): string {
 /** Nom de la variable réellement retenue - utile pour les diagnostics au démarrage. */
 export function getDatabaseUrlSource(): string {
   return resolve(RUNTIME_KEYS)?.key ?? "(aucune)";
+}
+
+/**
+ * Valeur d'une variable de configuration, préfixe éventuel compris.
+ *
+ * La lecture directe est tentée d'abord : dans certains environnements
+ * (proxy Next.js), `process.env` n'est pas toujours énumérable.
+ */
+export function getEnv(name: string): string | undefined {
+  const direct = process.env[name];
+  if (typeof direct === "string" && direct.length > 0) return direct;
+  return matching(name)[0]?.value;
+}
+
+/**
+ * Secret de signature des sessions Auth.js.
+ *
+ * Sans lui, Auth.js refuse toute connexion avec le message « There was a
+ * problem with the server configuration » : on préfère un message explicite.
+ */
+export function getAuthSecret(): string | undefined {
+  const secret = getEnv("AUTH_SECRET") ?? getEnv("NEXTAUTH_SECRET");
+  if (!secret) {
+    console.error(
+      "[auth] AUTH_SECRET est absent : la connexion à l'espace administration " +
+        "échouera avec « There was a problem with the server configuration ». " +
+        "Générez-le avec `openssl rand -base64 32` puis redémarrez le serveur.",
+    );
+  }
+  return secret;
 }

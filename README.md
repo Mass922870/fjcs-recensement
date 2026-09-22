@@ -83,8 +83,7 @@ Utilisateur fjcs
 Mot de passe fjcs_dev_password
 URL complète postgresql://fjcs:fjcs_dev_password@localhost:5433/fjcs_recensement
 
-E-mail : admin@fjcs.sn
-Mot de passe : Admin2026!fjcs
+Le compte d'administration se crée localement avec `npm run create-admin` (voir plus bas) : aucun mot de passe n'est publié ici.
 
 Les profils de démonstration sont marqués `isDemo = true`, exclus de toutes les statistiques sauf si `SHOW_DEMO_DATA=true` hors production, et le seed refuse de s'exécuter en production.
 

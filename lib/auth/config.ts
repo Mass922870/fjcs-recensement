@@ -1,10 +1,12 @@
 import type { NextAuthConfig } from "next-auth";
+import { getAuthSecret } from "@/lib/env";
 
 /**
  * Configuration Auth.js partagée entre le proxy (sans accès base) et le
  * serveur (avec le provider Credentials). Sessions JWT httpOnly, 8 heures.
  */
 export const authConfig = {
+  secret: getAuthSecret(),
   pages: {
     signIn: "/connexion",
     error: "/connexion",

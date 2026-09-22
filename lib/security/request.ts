@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
+import { getEnv } from "@/lib/env";
 
 /** IP du client (derrière proxy : premier X-Forwarded-For). */
 export async function getClientIp(): Promise<string> {
@@ -20,7 +21,7 @@ export async function getUserAgent(): Promise<string | null> {
  * l'adresse en clair (aucune donnée personnelle dans les journaux).
  */
 export function hashIp(ip: string): string {
-  const salt = process.env.IP_HASH_SALT ?? "";
+  const salt = getEnv("IP_HASH_SALT") ?? "";
   return createHash("sha256").update(`${salt}:${ip}`).digest("hex").slice(0, 32);
 }
 
