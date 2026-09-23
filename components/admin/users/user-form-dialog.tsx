@@ -25,11 +25,16 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ROLE_LABELS } from "@/lib/constants/referentials";
-import type { Role } from "@/lib/generated/prisma/enums";
+import { MANAGEMENT_ROLE_DESCRIPTIONS, MANAGEMENT_ROLE_LABELS } from "@/lib/auth/management-rbac";
+import { MANAGEMENT_NAME } from "@/lib/constants/app";
+import type { ManagementRole, Role } from "@/lib/generated/prisma/enums";
 import { createUserAction, resetUserPasswordAction, updateUserAction } from "@/actions/users";
 import type { ActionResult } from "@/lib/action-result";
 
 const ROLES = Object.keys(ROLE_LABELS) as Role[];
+const MANAGEMENT_ROLES = Object.keys(MANAGEMENT_ROLE_LABELS) as ManagementRole[];
+/** Valeur sentinelle : un <SelectItem> ne peut pas porter une valeur vide. */
+const NO_MANAGEMENT = "__aucun__";
 
 const ROLE_HINTS: Record<Role, string> = {
   SUPER_ADMIN: "Tout accès, y compris utilisateurs et suppression définitive.",
@@ -156,7 +161,13 @@ export function CreateUserDialog({ children }: { children: React.ReactNode }) {
 }
 
 interface EditUserProps {
-  user: { id: string; name: string; role: Role; isActive: boolean };
+  user: {
+    id: string;
+    name: string;
+    role: Role;
+    isActive: boolean;
+    managementRole: ManagementRole | null;
+  };
   isSelf: boolean;
   children: React.ReactNode;
 }
@@ -165,6 +176,9 @@ export function EditUserDialog({ user, isSelf, children }: EditUserProps) {
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState<Role>(user.role);
   const [isActive, setIsActive] = useState(user.isActive);
+  const [managementRole, setManagementRole] = useState<string>(
+    user.managementRole ?? NO_MANAGEMENT,
+  );
   const { pending, errors, globalError, submit } = useSubmit(() => setOpen(false));
 
   return (
@@ -176,7 +190,13 @@ export function EditUserDialog({ user, isSelf, children }: EditUserProps) {
             e.preventDefault();
             const fd = new FormData(e.currentTarget);
             submit(
-              () => updateUserAction(user.id, { name: fd.get("name"), role, isActive }),
+              () =>
+                updateUserAction(user.id, {
+                  name: fd.get("name"),
+                  role,
+                  isActive,
+                  managementRole: managementRole === NO_MANAGEMENT ? "" : managementRole,
+                }),
               "Utilisateur mis à jour.",
             );
           }}
@@ -211,6 +231,27 @@ export function EditUserDialog({ user, isSelf, children }: EditUserProps) {
             </Select>
             <FieldDescription>
               {isSelf ? "Vous ne pouvez pas modifier votre propre rôle." : ROLE_HINTS[role]}
+            </FieldDescription>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="e-management-role">{MANAGEMENT_NAME}</FieldLabel>
+            <Select value={managementRole} onValueChange={setManagementRole}>
+              <SelectTrigger id="e-management-role" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_MANAGEMENT}>Aucun accès</SelectItem>
+                {MANAGEMENT_ROLES.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {MANAGEMENT_ROLE_LABELS[r]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FieldDescription>
+              {managementRole === NO_MANAGEMENT
+                ? "Ce compte ne voit pas l'espace interne du bureau."
+                : MANAGEMENT_ROLE_DESCRIPTIONS[managementRole as ManagementRole]}
             </FieldDescription>
           </Field>
           <Field orientation="horizontal">

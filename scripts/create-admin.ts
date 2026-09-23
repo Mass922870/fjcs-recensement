@@ -3,6 +3,10 @@
  *
  *   npm run create-admin -- --email admin@fjcs.sn --name "Prénom Nom" --role SUPER_ADMIN
  *
+ * Le rôle dans l'espace interne s'ajoute avec --management-role (facultatif,
+ * aucun accès par défaut) :
+ *   npm run create-admin -- --email ... --name ... --management-role PRESIDENT
+ *
  * Le mot de passe est demandé de manière interactive (jamais passé en argument
  * pour ne pas apparaître dans l'historique du shell), ou lu depuis ADMIN_PASSWORD.
  */
@@ -10,12 +14,20 @@ import "dotenv/config";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient, type Role } from "../lib/generated/prisma/client";
+import { PrismaClient, type ManagementRole, type Role } from "../lib/generated/prisma/client";
 import { getDirectDatabaseUrl } from "../lib/env";
 import { hashPassword } from "../lib/auth/password";
 import { passwordSchema } from "../schemas/auth";
 
 const ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "ANALYST", "VIEWER"];
+const MANAGEMENT_ROLES: ManagementRole[] = [
+  "SUPER_ADMIN",
+  "PRESIDENT",
+  "SECRETAIRE",
+  "RESPONSABLE_COMMISSION",
+  "MEMBRE_BUREAU",
+  "VIEWER",
+];
 
 function arg(name: string): string | undefined {
   const idx = process.argv.indexOf(`--${name}`);
@@ -26,6 +38,8 @@ async function main() {
   const email = arg("email")?.toLowerCase().trim();
   const name = arg("name")?.trim();
   const role = (arg("role") ?? "SUPER_ADMIN") as Role;
+  const managementRoleArg = arg("management-role");
+  const managementRole = managementRoleArg ? (managementRoleArg as ManagementRole) : undefined;
 
   if (!email || !name) {
     console.error(
@@ -35,6 +49,10 @@ async function main() {
   }
   if (!ROLES.includes(role)) {
     console.error(`Rôle invalide. Valeurs possibles : ${ROLES.join(", ")}`);
+    process.exit(1);
+  }
+  if (managementRole && !MANAGEMENT_ROLES.includes(managementRole)) {
+    console.error(`Rôle management invalide. Valeurs possibles : ${MANAGEMENT_ROLES.join(", ")}`);
     process.exit(1);
   }
 
@@ -56,10 +74,25 @@ async function main() {
   const passwordHash = await hashPassword(parsed.data);
   const user = await prisma.user.upsert({
     where: { email },
-    update: { name, role, passwordHash, isActive: true, failedLoginAttempts: 0, lockedUntil: null },
-    create: { email, name, role, passwordHash },
+    update: {
+      name,
+      role,
+      passwordHash,
+      isActive: true,
+      failedLoginAttempts: 0,
+      lockedUntil: null,
+      // Omis si l'option n'est pas passée : on ne retire jamais un accès interne
+      // par inadvertance en réinitialisant un mot de passe.
+      ...(managementRole ? { managementRole } : {}),
+    },
+    create: { email, name, role, passwordHash, managementRole },
   });
   console.log(`✓ Compte ${user.role} prêt : ${user.email}`);
+  console.log(
+    user.managementRole
+      ? `  FJCS Management : ${user.managementRole}`
+      : "  FJCS Management : aucun accès",
+  );
   await prisma.$disconnect();
 }
 

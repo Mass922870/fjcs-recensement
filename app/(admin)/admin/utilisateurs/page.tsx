@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { KeyRound, Pencil, Plus } from "lucide-react";
+import { KeyRound, Pencil, Plus, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,10 @@ import {
   EditUserDialog,
   ResetPasswordDialog,
 } from "@/components/admin/users/user-form-dialog";
+import { DeleteUserDialog } from "@/components/admin/users/delete-user-dialog";
 import { requirePagePermission } from "@/lib/auth/session";
 import { ROLE_LABELS } from "@/lib/constants/referentials";
+import { MANAGEMENT_ROLE_LABELS } from "@/lib/auth/management-rbac";
 import { listUsers } from "@/services/users.service";
 
 export const metadata: Metadata = { title: "Utilisateurs" };
@@ -69,7 +71,14 @@ export default async function UsersPage() {
                       <p className="text-muted-foreground text-xs">{u.email}</p>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{ROLE_LABELS[u.role]}</Badge>
+                      <div className="flex flex-wrap gap-1.5">
+                        <Badge variant="secondary">{ROLE_LABELS[u.role]}</Badge>
+                        {u.managementRole ? (
+                          <Badge className="bg-cyan-100 text-cyan-800 hover:bg-cyan-100">
+                            {MANAGEMENT_ROLE_LABELS[u.managementRole]}
+                          </Badge>
+                        ) : null}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {!u.isActive ? (
@@ -100,7 +109,13 @@ export default async function UsersPage() {
                     <TableCell>
                       <div className="flex justify-end gap-1">
                         <EditUserDialog
-                          user={{ id: u.id, name: u.name, role: u.role, isActive: u.isActive }}
+                          user={{
+                            id: u.id,
+                            name: u.name,
+                            role: u.role,
+                            isActive: u.isActive,
+                            managementRole: u.managementRole,
+                          }}
                           isSelf={u.id === me.id}
                         >
                           <Button variant="ghost" size="icon" aria-label={`Modifier ${u.name}`}>
@@ -116,6 +131,26 @@ export default async function UsersPage() {
                             <KeyRound />
                           </Button>
                         </ResetPasswordDialog>
+                        {u.id === me.id ? null : (
+                          <DeleteUserDialog
+                            user={{ id: u.id, name: u.name, email: u.email }}
+                            impact={{
+                              auditEntries: u._count.auditLogs,
+                              createdProfiles: u._count.createdProfiles,
+                              member: u.member
+                                ? `${u.member.firstName} ${u.member.lastName}`
+                                : null,
+                            }}
+                          >
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label={`Supprimer le compte de ${u.name}`}
+                            >
+                              <Trash2 className="text-destructive" />
+                            </Button>
+                          </DeleteUserDialog>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

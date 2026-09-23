@@ -9,6 +9,12 @@ export const LOGO_SRC = "/assets/logo-fjcs.png";
 export const CTNI_LOGO_SRC = "/assets/logo-ctni.png";
 export const ORG_COMMISSION_ACRONYM = "CTNI";
 
+/** Espace interne du bureau, distinct du parcours public de recensement. */
+export const MANAGEMENT_NAME = "FJCS Management";
+export const MANAGEMENT_TAGLINE = "Pilotage interne du bureau";
+export const CENSUS_SPACE_NAME = "Espace Jeunesse";
+export const CENSUS_SPACE_TAGLINE = "Recensement jeunesse";
+
 /** Version du texte de consentement - à incrémenter si le texte change. */
 export const CONSENT_TEXT_VERSION = "2026-09-v1";
 export const CONSENT_TEXT =

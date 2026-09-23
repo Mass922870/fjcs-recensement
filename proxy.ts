@@ -3,8 +3,9 @@ import { NextResponse } from "next/server";
 import { authConfig } from "@/lib/auth/config";
 
 /**
- * Première barrière : toute route /admin exige une session valide.
- * Les permissions fines (RBAC) sont revérifiées dans chaque page et action.
+ * Première barrière : /admin et /management exigent une session valide.
+ * Les permissions fines (RBAC) sont revérifiées dans chaque page et action ;
+ * le rôle interne, lui, est relu en base par la mise en page de /management.
  */
 const { auth } = NextAuth(authConfig);
 
@@ -12,7 +13,7 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
   const isLoggedIn = Boolean(req.auth?.user);
 
-  if (pathname.startsWith("/admin") && !isLoggedIn) {
+  if ((pathname.startsWith("/admin") || pathname.startsWith("/management")) && !isLoggedIn) {
     const url = new URL("/connexion", req.nextUrl.origin);
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
@@ -26,5 +27,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/admin/:path*", "/connexion"],
+  matcher: ["/admin/:path*", "/management/:path*", "/connexion"],
 };

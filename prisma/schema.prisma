@@ -63,11 +63,38 @@ enum AuditAction {
   USER_CREATED
   USER_UPDATED
   USER_DEACTIVATED
+  USER_DELETED
   USER_PASSWORD_CHANGED
   EXPORT_GENERATED
   REPORT_GENERATED
   SETTINGS_UPDATED
   REFERENTIAL_UPDATED
+  MEMBER_CREATED
+  MEMBER_UPDATED
+  MEMBER_ARCHIVED
+  COMMISSION_CREATED
+  COMMISSION_UPDATED
+  COMMISSION_DELETED
+  MEETING_CREATED
+  MEETING_UPDATED
+  MEETING_CANCELLED
+  MEETING_ARCHIVED
+  ATTENDANCE_RECORDED
+  ATTENDANCE_CORRECTED
+  ATTENDANCE_TOKEN_ISSUED
+  ATTENDANCE_TOKEN_REVOKED
+  MINUTES_CREATED
+  MINUTES_UPDATED
+  MINUTES_SUBMITTED
+  MINUTES_VALIDATED
+  MINUTES_ARCHIVED
+  DECISION_RECORDED
+  ACTION_CREATED
+  ACTION_UPDATED
+  ACTION_CLOSED
+  DOCUMENT_UPLOADED
+  DOCUMENT_DELETED
+  DOCUMENT_DOWNLOADED
 }
 
 // ---------------------------------------------------------------------------
@@ -75,22 +102,30 @@ enum AuditAction {
 // ---------------------------------------------------------------------------
 
 model User {
-  id                  String    @id @default(cuid())
-  email               String    @unique
+  id                  String          @id @default(cuid())
+  email               String          @unique
   passwordHash        String
   name                String
-  role                Role      @default(VIEWER)
-  isActive            Boolean   @default(true)
-  failedLoginAttempts Int       @default(0)
+  role                Role            @default(VIEWER)
+  /// Rôle dans l'espace FJCS Management. Nul = aucun accès à cet espace.
+  managementRole      ManagementRole?
+  isActive            Boolean         @default(true)
+  failedLoginAttempts Int             @default(0)
   lockedUntil         DateTime?
   lastLoginAt         DateTime?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
 
   auditLogs       AuditLog[]
   createdProfiles YouthProfile[] @relation("ProfileCreatedBy")
 
+  member              Member?
+  createdMeetings     Meeting[]    @relation("MeetingCreatedBy")
+  recordedAttendances Attendance[] @relation("AttendanceRecordedBy")
+  uploadedDocuments   Document[]   @relation("DocumentUploadedBy")
+
   @@index([role])
+  @@index([managementRole])
   @@index([isActive])
 }
 
@@ -362,4 +397,376 @@ model YouthNeed {
 
   @@id([youthId, needId])
   @@index([needId])
+}
+
+// ===========================================================================
+//  FJCS MANAGEMENT - espace interne du bureau
+//
+//  Aucune relation ne relie ces modèles à YouthProfile : un jeune recensé
+//  n'est pas un membre du FJCS et n'obtient jamais d'accès par ce biais.
+//  Le droit d'entrer ici vient de User.managementRole, nul par défaut.
+// ===========================================================================
+
+/// Rôle dans l'espace interne, indépendant du rôle sur le recensement.
+enum ManagementRole {
+  SUPER_ADMIN
+  PRESIDENT
+  SECRETAIRE
+  RESPONSABLE_COMMISSION
+  MEMBRE_BUREAU
+  VIEWER
+}
+
+enum MemberStatus {
+  ACTIF
+  INACTIF
+  SUSPENDU
+  ARCHIVE
+}
+
+enum MeetingType {
+  BUREAU
+  COMMISSION
+  ASSEMBLEE_GENERALE
+  EXTRAORDINAIRE
+  PROJET
+  PARTENAIRES
+  AUTRE
+}
+
+enum MeetingStatus {
+  PLANIFIEE
+  EN_COURS
+  TERMINEE
+  ANNULEE
+  ARCHIVEE
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  EXCUSE
+  RETARD
+}
+
+enum AttendanceMethod {
+  MANUEL
+  QR_CODE
+}
+
+enum MinutesStatus {
+  BROUILLON
+  EN_REVISION
+  A_VALIDER
+  VALIDE
+  ARCHIVE
+}
+
+enum ActionPriority {
+  BASSE
+  NORMALE
+  HAUTE
+  URGENTE
+}
+
+/// Le retard n'est pas un statut stocké : il se déduit de dueDate, ce qui évite
+/// une tâche planifiée pour basculer les enregistrements et ne peut pas dériver.
+enum ActionStatus {
+  A_FAIRE
+  EN_COURS
+  TERMINE
+  BLOQUE
+}
+
+model Commission {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  acronym     String?
+  description String?
+  leadId      String?
+  lead        Member?  @relation("CommissionLead", fields: [leadId], references: [id], onDelete: SetNull)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members  Member[]     @relation("MemberCommission")
+  meetings Meeting[]
+  actions  ActionItem[]
+
+  @@index([isActive, sortOrder])
+}
+
+/// Personne du FJCS. Distincte du compte de connexion : la plupart des membres
+/// figurent sur les feuilles de présence sans jamais se connecter.
+model Member {
+  id           String       @id @default(cuid())
+  firstName    String
+  lastName     String
+  phone        String?
+  email        String?      @unique
+  /// Fonction au sein du FJCS (Président, Trésorier, Membre…).
+  role         String?
+  commissionId String?
+  commission   Commission?  @relation("MemberCommission", fields: [commissionId], references: [id], onDelete: SetNull)
+  status       MemberStatus @default(ACTIF)
+  joinedAt     DateTime?    @db.Date
+  notes        String?
+  /// Compte de connexion associé, s'il en existe un.
+  userId       String?      @unique
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  isDemo       Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  commissionsLed    Commission[]         @relation("CommissionLead")
+  participations    MeetingParticipant[]
+  attendances       Attendance[]
+  organizedMeetings Meeting[]            @relation("MeetingOrganizer")
+  chairedMinutes    Minutes[]            @relation("MinutesChair")
+  writtenMinutes    Minutes[]            @relation("MinutesSecretary")
+  assignedActions   ActionItem[]         @relation("ActionAssignee")
+
+  @@index([status])
+  @@index([commissionId])
+  @@index([lastName, firstName])
+}
+
+model Meeting {
+  id           String        @id @default(cuid())
+  /// Référence lisible attribuée à la création (ex. REU-2026-0007).
+  reference    String        @unique
+  title        String
+  type         MeetingType
+  status       MeetingStatus @default(PLANIFIEE)
+  startsAt     DateTime
+  /// Fin prévue à la planification, puis fin réelle une fois la séance close.
+  endsAt       DateTime?
+  location     String?
+  description  String?
+  commissionId String?
+  commission   Commission?   @relation(fields: [commissionId], references: [id], onDelete: SetNull)
+  organizerId  String?
+  organizer    Member?       @relation("MeetingOrganizer", fields: [organizerId], references: [id], onDelete: SetNull)
+  createdById  String?
+  createdBy    User?         @relation("MeetingCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  cancelReason String?
+  isDemo       Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  archivedAt   DateTime?
+
+  agenda       AgendaItem[]
+  participants MeetingParticipant[]
+  attendances  Attendance[]
+  tokens       AttendanceToken[]
+  minutes      Minutes?
+  decisions    Decision[]
+  actions      ActionItem[]
+  documents    Document[]
+
+  @@index([startsAt(sort: Desc)])
+  @@index([status, startsAt])
+  @@index([type])
+  @@index([commissionId])
+}
+
+model AgendaItem {
+  id          String   @id @default(cuid())
+  meetingId   String
+  meeting     Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  position    Int
+  title       String
+  description String?
+  /// Compte rendu des échanges sur ce point, saisi dans le procès-verbal.
+  discussion  String?
+  /// Durée prévue en minutes.
+  duration    Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  decisions Decision[]
+
+  @@unique([meetingId, position])
+  @@index([meetingId])
+}
+
+/// Membre convoqué à une réunion. La présence effective est dans Attendance.
+model MeetingParticipant {
+  id        String   @id @default(cuid())
+  meetingId String
+  meeting   Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  memberId  String
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  /// Convocation obligatoire ou simple invitation.
+  required  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@unique([meetingId, memberId])
+  @@index([memberId])
+}
+
+model Attendance {
+  id           String           @id @default(cuid())
+  meetingId    String
+  meeting      Meeting          @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       Member           @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  status       AttendanceStatus
+  method       AttendanceMethod @default(MANUEL)
+  arrivedAt    DateTime?
+  leftAt       DateTime?
+  comment      String?
+  /// Compte ayant enregistré ou corrigé la présence.
+  recordedById String?
+  recordedBy   User?            @relation("AttendanceRecordedBy", fields: [recordedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  /// Une seule présence par membre et par réunion.
+  @@unique([meetingId, memberId])
+  @@index([memberId])
+  @@index([status])
+}
+
+/// Jeton de pointage par QR code : aléatoire, à durée de vie courte, révocable.
+/// L'identifiant de réunion ne sert jamais de jeton.
+model AttendanceToken {
+  id          String    @id @default(cuid())
+  /// Empreinte SHA-256 du jeton : la valeur en clair n'existe que dans le QR.
+  tokenHash   String    @unique
+  meetingId   String
+  meeting     Meeting   @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdById String?
+  createdAt   DateTime  @default(now())
+
+  @@index([meetingId])
+  @@index([expiresAt])
+}
+
+model Minutes {
+  id            String        @id @default(cuid())
+  meetingId     String        @unique
+  meeting       Meeting       @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  status        MinutesStatus @default(BROUILLON)
+  chairId       String?
+  chair         Member?       @relation("MinutesChair", fields: [chairId], references: [id], onDelete: SetNull)
+  secretaryId   String?
+  secretary     Member?       @relation("MinutesSecretary", fields: [secretaryId], references: [id], onDelete: SetNull)
+  introduction  String?
+  proceedings   String?
+  observations  String?
+  misc          String?
+  conclusion    String?
+  /// Numéro de la version courante, incrémenté à chaque validation.
+  version       Int           @default(1)
+  validatedAt   DateTime?
+  validatedById String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  versions  MinutesVersion[]
+  documents Document[]
+
+  @@index([status])
+}
+
+/// Instantané figé d'un procès-verbal validé : un PV validé ne se modifie pas,
+/// toute reprise crée une version supplémentaire.
+model MinutesVersion {
+  id        String   @id @default(cuid())
+  minutesId String
+  minutes   Minutes  @relation(fields: [minutesId], references: [id], onDelete: Cascade)
+  version   Int
+  /// Contenu complet du PV au moment de la validation.
+  content   Json
+  reason    String?
+  authorId  String?
+  createdAt DateTime @default(now())
+
+  @@unique([minutesId, version])
+  @@index([minutesId])
+}
+
+model Decision {
+  id           String      @id @default(cuid())
+  meetingId    String
+  meeting      Meeting     @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  agendaItemId String?
+  agendaItem   AgendaItem? @relation(fields: [agendaItemId], references: [id], onDelete: SetNull)
+  title        String
+  description  String?
+  position     Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  actions ActionItem[]
+
+  @@index([meetingId])
+}
+
+model ActionItem {
+  id           String         @id @default(cuid())
+  title        String
+  description  String?
+  assigneeId   String?
+  assignee     Member?        @relation("ActionAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  commissionId String?
+  commission   Commission?    @relation(fields: [commissionId], references: [id], onDelete: SetNull)
+  dueDate      DateTime?      @db.Date
+  priority     ActionPriority @default(NORMALE)
+  status       ActionStatus   @default(A_FAIRE)
+  /// Ordre dans sa colonne du Kanban.
+  position     Int            @default(0)
+  meetingId    String?
+  meeting      Meeting?       @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+  decisionId   String?
+  decision     Decision?      @relation(fields: [decisionId], references: [id], onDelete: SetNull)
+  completedAt  DateTime?
+  isDemo       Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  documents Document[]
+
+  @@index([status, position])
+  @@index([assigneeId])
+  @@index([dueDate])
+  @@index([commissionId])
+}
+
+model Document {
+  id           String      @id @default(cuid())
+  title        String
+  /// Clé interne du document - jamais une URL publique ni devinable.
+  storageKey   String      @unique
+  mimeType     String
+  sizeBytes    Int
+  meetingId    String?
+  meeting      Meeting?    @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  minutesId    String?
+  minutesRef   Minutes?    @relation(fields: [minutesId], references: [id], onDelete: Cascade)
+  actionId     String?
+  action       ActionItem? @relation(fields: [actionId], references: [id], onDelete: Cascade)
+  uploadedById String?
+  uploadedBy   User?       @relation("DocumentUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime    @default(now())
+
+  blob DocumentBlob?
+
+  @@index([meetingId])
+  @@index([minutesId])
+  @@index([actionId])
+}
+
+/// Contenu binaire, isolé dans sa propre table pour que lister les documents
+/// ne charge jamais les octets. Convient à la volumétrie d'un bureau ; un
+/// stockage objet se substituerait ici sans toucher au reste du modèle.
+model DocumentBlob {
+  documentId String   @id
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  content    Bytes
+  createdAt  DateTime @default(now())
 }

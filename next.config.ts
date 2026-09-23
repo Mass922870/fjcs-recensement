@@ -40,6 +40,8 @@ const nextConfig: NextConfig = {
   // public/ ne sont pas embarqués dans la fonction serverless (Vercel).
   outputFileTracingIncludes: {
     "/api/rapports": ["./public/assets/**"],
+    "/api/management/presences/[id]": ["./public/assets/**"],
+    "/api/management/proces-verbaux/[id]": ["./public/assets/**"],
   },
   images: {
     formats: ["image/avif", "image/webp"],

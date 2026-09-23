@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Role } from "@/lib/generated/prisma/enums";
+import { ManagementRole, Role } from "@/lib/generated/prisma/enums";
 import { passwordSchema } from "./auth";
 
 export const createUserSchema = z.object({
@@ -14,6 +14,13 @@ export const updateUserSchema = z.object({
   name: z.string().trim().min(2, "Au moins 2 caractères.").max(80),
   role: z.enum(Role),
   isActive: z.boolean(),
+  /** Accès à FJCS Management. "" ou absent = aucun accès. */
+  managementRole: z
+    .enum(ManagementRole)
+    .nullable()
+    .optional()
+    .or(z.literal(""))
+    .transform((v) => (v ? v : null)),
 });
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 

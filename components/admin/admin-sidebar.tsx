@@ -29,10 +29,10 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/shared/logo";
+import { UniverseSwitcher } from "@/components/management/universe-switcher";
 import { ADMIN_NAV } from "@/lib/constants/navigation";
 import { hasPermission } from "@/lib/auth/rbac";
 import type { Role } from "@/lib/generated/prisma/enums";
-import { ORG_ACRONYM } from "@/lib/constants/app";
 
 const ICONS: Record<string, LucideIcon> = {
   LayoutDashboard,
@@ -46,23 +46,19 @@ const ICONS: Record<string, LucideIcon> = {
   Settings,
 };
 
-export function AdminSidebar({ role }: { role: Role }) {
+export function AdminSidebar({
+  role,
+  canAccessManagement,
+}: {
+  role: Role;
+  canAccessManagement: boolean;
+}) {
   const pathname = usePathname();
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
       <SidebarHeader className="px-3 py-4">
-        <Link
-          href="/admin"
-          className="flex items-center gap-3 overflow-hidden"
-          aria-label="Dashboard"
-        >
-          <Logo variant="emblem" className="size-9 shrink-0 bg-white" />
-          <div className="min-w-0 leading-tight group-data-[collapsible=icon]:hidden">
-            <p className="truncate text-sm font-semibold text-white">{ORG_ACRONYM}</p>
-            <p className="text-sidebar-foreground/70 truncate text-xs">Recensement jeunesse</p>
-          </div>
-        </Link>
+        <UniverseSwitcher current="census" canAccessManagement={canAccessManagement} />
       </SidebarHeader>
 
       <SidebarContent>

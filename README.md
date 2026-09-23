@@ -180,6 +180,60 @@ npm run create-admin -- --email prenom.nom@fjcs.sn --name "Prénom Nom" --role S
 Pour un hébergement autonome (VPS), copier `.env.production.example` en `.env.production`,
 renseigner `DATABASE_URL` et `DIRECT_URL`, puis `npm run build && npm run start`.
 
+## FJCS Management
+
+L'espace interne du bureau, sous `/management`, vit dans la même application et
+la même base que le recensement, mais reste totalement cloisonné : réunions,
+calendrier, présences, procès-verbaux, actions, documents, archives et
+statistiques d'assiduité.
+
+Le droit d'y entrer ne vient jamais du rôle sur le recensement. Chaque compte
+porte deux rôles indépendants :
+
+| Champ | Gouverne | Valeur par défaut |
+| --- | --- | --- |
+| `User.role` | l'espace recensement (`/admin`) | `VIEWER` |
+| `User.managementRole` | l'espace interne (`/management`) | aucun accès |
+
+Un super administrateur du recensement sans rôle interne est refusé à l'entrée
+de `/management`, et un jeune recensé n'obtient jamais d'accès : `YouthProfile`
+et `Member` n'ont aucune relation.
+
+Le rôle interne se donne compte par compte dans Espace Jeunesse › Utilisateurs,
+ou à la création :
+
+```bash
+npm run create-admin -- --email presidence@fjcs.sn --name "Prénom Nom" --role VIEWER --management-role PRESIDENT
+```
+
+Rôles disponibles : `SUPER_ADMIN`, `PRESIDENT`, `SECRETAIRE`,
+`RESPONSABLE_COMMISSION`, `MEMBRE_BUREAU`, `VIEWER`. La matrice complète des
+permissions est dans `lib/auth/management-rbac.ts`, vérifiée côté serveur dans
+chaque page et chaque action.
+
+Deux points de fonctionnement à connaître :
+
+- le pointage par QR code s'appuie sur un jeton aléatoire à durée de vie
+  courte, révocable, dont seule l'empreinte est stockée. La page de scan
+  `/presence/[token]` est volontairement hors authentification, car la plupart
+  des membres n'ont pas de compte ; le QR ne prouve donc pas l'identité et la
+  feuille reste corrigeable par un responsable ;
+- les documents internes sont stockés en base, plafonnés à 4 Mo, et servis par
+  une route authentifiée qui journalise chaque téléchargement. Ils ne sont
+  jamais accessibles publiquement.
+
+### Données de démonstration de l'espace interne
+
+```bash
+npm run db:seed-management            # commissions, membres et réunions fictives
+npm run db:seed-management -- --purge # les supprimer
+```
+
+Comme les profils fictifs du recensement, ces enregistrements portent
+`isDemo = true`. Ils n'apparaissent qu'en développement **et** avec
+`SHOW_DEMO_DATA=true`. En production, ils restent invisibles même si la
+variable est définie, et le script refuse de s'exécuter.
+
 ## Sécurité et protection des données
 
 - Validation Zod partagée client/serveur ; requêtes paramétrées via Prisma ; en-têtes de sécurité (CSP, HSTS, X-Frame-Options…) dans `next.config.ts`.

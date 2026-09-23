@@ -14,6 +14,7 @@ import {
 import {
   changeOwnPassword,
   createUser,
+  deleteUser,
   resetUserPassword,
   updateUser,
 } from "@/services/users.service";
@@ -67,6 +68,17 @@ export async function changeOwnPasswordAction(values: unknown): Promise<ActionRe
     const parsed = changeOwnPasswordSchema.safeParse(values);
     if (!parsed.success) throw new ValidationError("Données invalides.", fieldErrors(parsed.error));
     await changeOwnPassword(user.id, parsed.data.currentPassword, parsed.data.newPassword);
+    return { ok: true };
+  } catch (e) {
+    return toActionError(e);
+  }
+}
+
+export async function deleteUserAction(id: string): Promise<ActionResult> {
+  try {
+    const actor = await requirePermission("users:manage");
+    await deleteUser(z.string().min(1).parse(id), actor.id);
+    revalidatePath("/admin/utilisateurs");
     return { ok: true };
   } catch (e) {
     return toActionError(e);
