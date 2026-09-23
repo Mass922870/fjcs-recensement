@@ -1,7 +1,13 @@
 import { SiteHeader } from "@/components/public/site-header";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import { getGaMeasurementId } from "@/lib/analytics";
 import { SiteFooter } from "@/components/public/site-footer";
 
 export default function PublicLayout({ children }: LayoutProps<"/">) {
+  // Mesure d'audience sur le site public seulement : les adresses de l'espace
+  // d'administration contiennent des identifiants de profils.
+  const gaId = getGaMeasurementId();
+
   return (
     <>
       <a
@@ -15,6 +21,7 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
         {children}
       </div>
       <SiteFooter />
+      {gaId ? <GoogleAnalytics measurementId={gaId} /> : null}
     </>
   );
 }

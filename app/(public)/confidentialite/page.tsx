@@ -116,7 +116,38 @@ export default async function PrivacyPage() {
           </p>
         </Section>
 
-        <Section title="9. Mise à jour">
+        <Section title="9. Mesure d'audience">
+          <p>
+            Le site public utilise Google Analytics 4 pour compter les visites et comprendre
+            comment les pages sont consultées. Sont transmises à Google la page visitée, la date,
+            le type d'appareil et de navigateur, ainsi qu'une localisation approximative déduite de
+            l'adresse IP, que Google anonymise.
+          </p>
+          <ul>
+            <li>
+              Vos réponses au recensement ne sont jamais transmises : la mesure porte uniquement
+              sur la navigation.
+            </li>
+            <li>
+              Votre identifiant de participation n'est pas transmis : les adresses envoyées à
+              Google sont dépouillées de tout paramètre.
+            </li>
+            <li>
+              L'espace d'administration est entièrement exclu de la mesure.
+            </li>
+            <li>
+              La personnalisation publicitaire et les signaux Google sont désactivés : les données
+              ne servent pas à du ciblage publicitaire.
+            </li>
+          </ul>
+          <p>
+            Pour vous y soustraire, vous pouvez utiliser le module de désactivation publié par
+            Google ou un bloqueur de traceurs dans votre navigateur. Le site reste pleinement
+            fonctionnel sans la mesure d'audience.
+          </p>
+        </Section>
+
+        <Section title="10. Mise à jour">
           <p>
             Cette politique peut évoluer. La version en vigueur est celle publiée sur cette page ;
             toute modification substantielle fera l'objet d'une nouvelle demande de consentement.

@@ -6,14 +6,15 @@ const isDev = process.env.NODE_ENV === "development";
  * Content Security Policy.
  * - 'unsafe-inline' pour les scripts : requis par l'hydratation Next.js sans nonce.
  * - tiles OpenStreetMap pour la cartographie, Turnstile (optionnel) pour l'anti-bot.
+ * - googletagmanager / google-analytics : mesure d'audience GA4 (pages publiques).
  */
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://challenges.cloudflare.com`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://challenges.cloudflare.com https://www.googletagmanager.com`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://unpkg.com",
+  "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://unpkg.com https://*.google-analytics.com https://*.googletagmanager.com",
   "font-src 'self' data: https://fonts.gstatic.com",
-  "connect-src 'self' https://challenges.cloudflare.com",
+  "connect-src 'self' https://challenges.cloudflare.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
   "frame-src https://challenges.cloudflare.com",
   "object-src 'none'",
   "base-uri 'self'",

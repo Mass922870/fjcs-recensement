@@ -52,6 +52,7 @@ npm run dev                 # http://localhost:3000
 | `NEXT_PUBLIC_APP_URL`                                    | URL publique du site                                                          |
 | `IP_HASH_SALT`                                           | Sel de hachage des IP dans les journaux                                       |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | CAPTCHA Cloudflare Turnstile (optionnel, activé si les deux sont définis)     |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID`                          | Identifiant GA4 `G-XXXXXXXXXX` (optionnel, mesure du site public)             |
 | `SHOW_DEMO_DATA`                                         | `true` en développement uniquement pour afficher les profils de démonstration |
 | `DIRECT_URL`                                             | Connexion directe PostgreSQL, pour les migrations et le seed                  |
 
@@ -161,6 +162,7 @@ utilise Prisma et Auth.js : aucun client Supabase ni SDK supplémentaire n'est n
    | `NEXT_PUBLIC_APP_URL`                                    | URL publique du site      |
    | `IP_HASH_SALT`                                           | `openssl rand -hex 24`    |
    | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | optionnel (CAPTCHA)       |
+   | `NEXT_PUBLIC_GA_MEASUREMENT_ID`                          | optionnel (`G-XXXXXXXXXX`) |
 
    Ne pas définir `SHOW_DEMO_DATA`.
 
